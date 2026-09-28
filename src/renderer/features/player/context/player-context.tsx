@@ -88,7 +88,7 @@ export interface PlayerContext {
     moveSelectedToBottom: (items: QueueSong[]) => void;
     moveSelectedToNext: (items: QueueSong[]) => void;
     moveSelectedToTop: (items: QueueSong[]) => void;
-    setQueue: (data: Song[], index?: number, position?: number) => void;
+    setQueue: (data: Song[], index?: number, position?: number, autoplay?: boolean) => void;
     setRepeat: (repeat: PlayerRepeat) => void;
     setShuffle: (shuffle: PlayerShuffle) => void;
     setSpeed: (speed: number) => void;
@@ -739,15 +739,16 @@ export const PlayerProvider = ({ children }: { children: React.ReactNode }) => {
     }, [storeActions]);
 
     const setQueue = useCallback(
-        (data: Song[], index?: number, position?: number) => {
+        (data: Song[], index?: number, position?: number, autoplay?: boolean) => {
             confirmQueueChange(() => {
                 logger.debug('Set queue', {
+                    autoplay,
                     data: data.length,
                     index,
                     position,
                 });
 
-                storeActions.setQueue(data, index, position);
+                storeActions.setQueue(data, index, position, autoplay);
             });
         },
         [confirmQueueChange, storeActions],

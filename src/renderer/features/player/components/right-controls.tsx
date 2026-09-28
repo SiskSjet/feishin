@@ -7,6 +7,7 @@ import { DlnaCastButton } from '/@/renderer/features/player/components/dlna-cast
 import { DlnaVolumeButton } from '/@/renderer/features/player/components/dlna/volume-button';
 import { PlayerConfig } from '/@/renderer/features/player/components/player-config';
 import { CustomPlayerbarSlider } from '/@/renderer/features/player/components/playerbar-slider';
+import { QueueSyncButton } from '/@/renderer/features/player/components/queue-sync-button';
 import { SleepTimerButton } from '/@/renderer/features/player/components/sleep-timer-button';
 import { usePlayer } from '/@/renderer/features/player/context/player-context';
 import { useAudioDevices } from '/@/renderer/features/settings/components/playback/audio-settings';
@@ -97,6 +98,7 @@ export const RightControls = () => {
             </Group>
             <Group align="center" gap="xs" wrap="nowrap">
                 <DlnaCastButton />
+                <QueueSyncButton />
                 <SleepTimerButton />
                 <PlayerConfig />
                 <LyricsButton />

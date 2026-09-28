@@ -497,11 +497,6 @@ const ShareExpirationSchema = z.object({
     useServerDefault: z.boolean(),
 });
 
-const AutoSaveSchema = z.object({
-    count: z.number().min(0),
-    enabled: z.boolean(),
-});
-
 export const GeneralSettingsSchema = z.object({
     accent: z
         .string()
@@ -522,7 +517,6 @@ export const GeneralSettingsSchema = z.object({
     artistItems: z.array(SortableItemSchema(ArtistItemSchema)),
     artistRadioCount: z.number(),
     artistReleaseTypeItems: z.array(SortableItemSchema(ArtistReleaseTypeItemSchema)),
-    autoSave: AutoSaveSchema,
     blurExplicitImages: z.boolean(),
     buttonSize: z.number(),
     collections: z.array(CollectionSchema),
@@ -791,6 +785,33 @@ const AutoDJSettingsSchema = z.object({
     timing: z.number(),
 });
 
+export const QUEUE_SYNC_REMOTE_ACTION = {
+    ALWAYS_CONTINUE: 'alwaysContinue',
+    ASK: 'ask',
+    CONTINUE_IF_EMPTY: 'continueIfEmpty',
+    NEVER_NOTIFY: 'neverNotify',
+} as const;
+
+export type QueueSyncRemoteAction =
+    (typeof QUEUE_SYNC_REMOTE_ACTION)[keyof typeof QUEUE_SYNC_REMOTE_ACTION];
+
+export const QUEUE_SYNC_TAKEOVER_ACTION = {
+    KEEP_PLAYING: 'keepPlaying',
+    PAUSE: 'pause',
+} as const;
+
+export type QueueSyncTakeoverAction =
+    (typeof QUEUE_SYNC_TAKEOVER_ACTION)[keyof typeof QUEUE_SYNC_TAKEOVER_ACTION];
+
+const QueueSyncSettingsSchema = z.object({
+    autoplayOnAutoContinue: z.boolean(),
+    deviceName: z.string(),
+    enabled: z.boolean(),
+    intervalSeconds: z.number().min(5).max(120),
+    remoteAction: z.enum(['ask', 'continueIfEmpty', 'alwaysContinue', 'neverNotify']),
+    takeoverAction: z.enum(['pause', 'keepPlaying']),
+});
+
 const TagAutocompleteSourceSchema = z.string();
 
 const TagConfigSchema = z.object({
@@ -843,6 +864,7 @@ export const ValidationSettingsStateSchema = z.object({
     lyricsDisplay: z.record(z.string(), LyricsDisplaySettingsSchema),
     playback: PlaybackSettingsSchema,
     queryBuilder: QueryBuilderSettingsSchema,
+    queueSync: QueueSyncSettingsSchema,
     remote: RemoteSettingsSchema,
     tab: z.union([
         z.literal('general'),
@@ -1343,10 +1365,6 @@ const initialState: SettingsState = {
         artistItems,
         artistRadioCount: 20,
         artistReleaseTypeItems,
-        autoSave: {
-            count: 10,
-            enabled: false,
-        },
         blurExplicitImages: false,
         buttonSize: 15,
         collections: [],
@@ -2135,6 +2153,14 @@ const initialState: SettingsState = {
     },
     queryBuilder: {
         tag: [],
+    },
+    queueSync: {
+        autoplayOnAutoContinue: false,
+        deviceName: '',
+        enabled: false,
+        intervalSeconds: 10,
+        remoteAction: QUEUE_SYNC_REMOTE_ACTION.CONTINUE_IF_EMPTY,
+        takeoverAction: QUEUE_SYNC_TAKEOVER_ACTION.PAUSE,
     },
     remote: {
         enabled: false,
@@ -2931,10 +2957,23 @@ export const useSettingsStore = createWithEqualityFn<SettingsSlice>()(
                     });
                 }
 
+                if (version < 35) {
+                    const legacyGeneral = state.general as typeof state.general & {
+                        autoSave?: { enabled?: boolean };
+                    };
+
+                    state.queueSync = {
+                        ...initialState.queueSync,
+                        enabled: legacyGeneral.autoSave?.enabled ?? false,
+                    };
+
+                    delete legacyGeneral.autoSave;
+                }
+
                 return persistedState;
             },
             name: 'store_settings',
-            version: 34,
+            version: 35,
         },
     ),
 );
@@ -3221,6 +3260,8 @@ export const useShowVisualizerInSidebar = () =>
     useSettingsStore((state) => state.general.showVisualizerInSidebar, shallow);
 
 export const useAutoDJSettings = () => useSettingsStore((store) => store.autoDJ, shallow);
+
+export const useQueueSyncSettings = () => useSettingsStore((store) => store.queueSync, shallow);
 
 export const useVisualizerSettings = () => useSettingsStore((store) => store.visualizer, shallow);
 

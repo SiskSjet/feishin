@@ -2294,6 +2294,7 @@ export const SubsonicController: InternalControllerEndpoint = {
         if (hasFeature(apiClientProps.server, ServerFeature.SERVER_PLAY_QUEUE)) {
             const res = await ssApiClient(apiClientProps).savePlayQueueByIndex({
                 query: {
+                    ...(query.clientName && { c: query.clientName }),
                     currentIndex:
                         query.currentIndex !== undefined && query.currentIndex < query.songs.length
                             ? Math.max(0, query.currentIndex)
@@ -2309,6 +2310,7 @@ export const SubsonicController: InternalControllerEndpoint = {
         } else {
             const res = await ssApiClient(apiClientProps).savePlayQueue({
                 query: {
+                    ...(query.clientName && { c: query.clientName }),
                     current:
                         query.currentIndex !== undefined && query.currentIndex < query.songs.length
                             ? query.songs[query.currentIndex]

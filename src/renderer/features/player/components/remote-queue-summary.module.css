@@ -1,0 +1,11 @@
+.cover {
+    flex-shrink: 0;
+    width: 3rem;
+    height: 3rem;
+    overflow: hidden;
+    border-radius: var(--theme-radius-sm);
+}
+
+.details {
+    min-width: 0;
+}

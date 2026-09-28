@@ -761,57 +761,6 @@ export const ApplicationSettings = memo(() => {
             isHidden: false,
             title: t('setting.fullscreenAutoOpenTimeout'),
         },
-        {
-            control: (
-                <Switch
-                    aria-label={t('setting.autosave')}
-                    defaultChecked={settings.autoSave.enabled}
-                    onChange={(e) => {
-                        setSettings({
-                            general: {
-                                ...settings,
-                                autoSave: {
-                                    ...settings.autoSave,
-                                    enabled: e.currentTarget.checked,
-                                },
-                            },
-                        });
-                    }}
-                />
-            ),
-            description: t('setting.autosave', {
-                context: 'description',
-            }),
-            title: t('setting.autosave'),
-        },
-        {
-            control: (
-                <NumberInput
-                    min={1}
-                    onBlur={(e) => {
-                        if (!e) return;
-                        const newVal = e.currentTarget.value
-                            ? Math.max(Number(e.currentTarget.value), 1)
-                            : settings.autoSave.count;
-                        setSettings({
-                            general: {
-                                ...settings,
-                                autoSave: {
-                                    ...settings.autoSave,
-                                    count: newVal,
-                                },
-                            },
-                        });
-                    }}
-                    value={settings.autoSave.count}
-                />
-            ),
-            description: t('setting.autosaveCount', {
-                context: 'description',
-            }),
-            isHidden: !settings.autoSave.enabled,
-            title: t('setting.autosaveCount'),
-        },
     ];
 
     return (

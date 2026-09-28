@@ -6,6 +6,7 @@ import { AudioSettings } from '/@/renderer/features/settings/components/playback
 import { AutoDJSettings } from '/@/renderer/features/settings/components/playback/auto-dj-settings';
 import { EqSettings } from '/@/renderer/features/settings/components/playback/eq-settings';
 import { PlayerFilterSettings } from '/@/renderer/features/settings/components/playback/player-filter-settings';
+import { QueueSyncSettings } from '/@/renderer/features/settings/components/playback/queue-sync-settings';
 import { TranscodeSettings } from '/@/renderer/features/settings/components/playback/transcode-settings';
 import { useSettingsStore } from '/@/renderer/store';
 import { Divider } from '/@/shared/components/divider/divider';
@@ -45,6 +46,8 @@ export const PlaybackTab = memo(() => {
             <PlayerFilterSettings />
             <Divider />
             <AutoDJSettings />
+            <Divider />
+            <QueueSyncSettings />
         </Stack>
     );
 });
