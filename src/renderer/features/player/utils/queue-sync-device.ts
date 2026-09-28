@@ -1,5 +1,7 @@
 import isElectron from 'is-electron';
 
+import i18n from '/@/i18n/i18n';
+
 const DEVICE_ID_STORAGE_KEY = 'queue-sync-device-id';
 const CLIENT_NAME_PATTERN = /^Feishin \((.+)\) \[([a-z0-9]+)\]$/;
 
@@ -37,7 +39,7 @@ const getBrowserName = (userAgent: string) => {
     if (/firefox\//i.test(userAgent)) return 'Firefox';
     if (/chrome\//i.test(userAgent)) return 'Chrome';
     if (/safari\//i.test(userAgent)) return 'Safari';
-    return 'Browser';
+    return '';
 };
 
 export const getDefaultQueueSyncDeviceName = () => {
@@ -45,11 +47,19 @@ export const getDefaultQueueSyncDeviceName = () => {
     const operatingSystemName = getOperatingSystemName(userAgent);
 
     if (isElectron()) {
-        return operatingSystemName ? `${operatingSystemName} desktop` : 'Desktop';
+        return operatingSystemName
+            ? i18n.t('player.queueSync.defaultDeviceDesktop', { os: operatingSystemName })
+            : i18n.t('player.queueSync.defaultDeviceDesktopUnknownOs');
     }
 
-    const browserName = getBrowserName(userAgent);
-    return operatingSystemName ? `${browserName} on ${operatingSystemName}` : browserName;
+    const browserName =
+        getBrowserName(userAgent) || i18n.t('player.queueSync.defaultDeviceBrowser');
+    return operatingSystemName
+        ? i18n.t('player.queueSync.defaultDeviceBrowserOnOs', {
+              browser: browserName,
+              os: operatingSystemName,
+          })
+        : browserName;
 };
 
 export const resolveQueueSyncDeviceName = (configuredDeviceName: string) =>

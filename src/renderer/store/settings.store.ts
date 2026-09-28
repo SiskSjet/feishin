@@ -808,8 +808,8 @@ const QueueSyncSettingsSchema = z.object({
     deviceName: z.string(),
     enabled: z.boolean(),
     intervalSeconds: z.number().min(5).max(120),
-    remoteAction: z.enum(['ask', 'continueIfEmpty', 'alwaysContinue', 'neverNotify']),
-    takeoverAction: z.enum(['pause', 'keepPlaying']),
+    remoteAction: z.nativeEnum(QUEUE_SYNC_REMOTE_ACTION),
+    takeoverAction: z.nativeEnum(QUEUE_SYNC_TAKEOVER_ACTION),
 });
 
 const TagAutocompleteSourceSchema = z.string();

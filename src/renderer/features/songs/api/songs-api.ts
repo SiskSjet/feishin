@@ -64,7 +64,7 @@ export const songsQueries = {
                     apiClientProps: { serverId: args.serverId, signal },
                 });
             },
-            queryKey: queryKeys.player.fetch({ type: 'queue' }),
+            queryKey: queryKeys.player.fetch({ serverId: args.serverId, type: 'queue' }),
             ...args.options,
         });
     },

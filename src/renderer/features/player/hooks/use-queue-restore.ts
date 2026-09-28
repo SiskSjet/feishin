@@ -218,22 +218,20 @@ export const useRestoreQueue = () => {
     const player = usePlayer();
     const queryClient = useQueryClient();
 
-    const handleRestoreQueue = useCallback(async () => {
-        if (!serverId) return;
-
-        try {
-            const queue = await fetchServerQueue(queryClient, serverId);
-
-            if (queue) {
-                applyServerQueue(player, serverId, queue);
+    return useMutation({
+        mutationFn: async () => {
+            if (!serverId) {
+                throw new Error(t('error.serverRequired'));
             }
-        } catch (error) {
+
+            const queue = await fetchServerQueue(queryClient, serverId);
+            applyServerQueue(player, serverId, queue);
+        },
+        onError: (error) => {
             toast.error({
                 message: (error as Error).message,
                 title: t('error.genericError'),
             });
-        }
-    }, [player, queryClient, serverId]);
-
-    return handleRestoreQueue;
+        },
+    });
 };

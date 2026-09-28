@@ -1,11 +1,9 @@
-import { useIsFetching } from '@tanstack/react-query';
 import clsx from 'clsx';
 import { MouseEvent, RefObject, useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import styles from './play-queue-list-controls.module.css';
 
-import { queryKeys } from '/@/renderer/api/query-keys';
 import { SONG_TABLE_COLUMNS } from '/@/renderer/components/item-list/item-table-list/default-columns';
 import { ItemListHandle } from '/@/renderer/components/item-list/types';
 import { usePlayer } from '/@/renderer/features/player/context/player-context';
@@ -85,9 +83,8 @@ export const PlayQueueListControls = ({
         return () => observer.disconnect();
     }, []);
 
-    const isFetching = useIsFetching({ queryKey: queryKeys.player.fetch({ type: 'queue' }) });
     const { isPending: isSavingQueue, mutate: saveQueue } = useSaveQueue();
-    const handleRestoreQueue = useRestoreQueue();
+    const { isPending: isRestoringQueue, mutate: restoreQueue } = useRestoreQueue();
 
     const handleSaveQueue = useCallback(() => {
         saveQueue(undefined, {
@@ -119,7 +116,7 @@ export const PlayQueueListControls = ({
         openCreatePrefilledPlaylistModal(server, queueSongs, e);
     };
 
-    const isRestoreBusy = isSavingQueue || Boolean(isFetching);
+    const isRestoreBusy = isSavingQueue || isRestoringQueue;
     const showTier1Menu = supportsQueue && overflowTier >= 1;
     const showTier2Menu = overflowTier >= 2;
     const showTier3Menu = overflowTier >= 3;
@@ -144,7 +141,7 @@ export const PlayQueueListControls = ({
                 {supportsQueue && (
                     <span className={styles.overflowTier1}>
                         <ActionIcon
-                            disabled={Boolean(isFetching)}
+                            disabled={isRestoringQueue}
                             icon="upload"
                             iconProps={{ size: 'lg' }}
                             loading={isSavingQueue}
@@ -158,8 +155,8 @@ export const PlayQueueListControls = ({
                             disabled={isRestoreBusy}
                             icon="download"
                             iconProps={{ size: 'lg' }}
-                            loading={Boolean(isFetching)}
-                            onClick={handleRestoreQueue}
+                            loading={isRestoringQueue}
+                            onClick={() => restoreQueue()}
                             tooltip={{
                                 label: t('player.restoreQueueFromServer'),
                             }}
@@ -208,7 +205,7 @@ export const PlayQueueListControls = ({
                             {showTier1Menu && (
                                 <>
                                     <DropdownMenu.Item
-                                        disabled={Boolean(isFetching) || isSavingQueue}
+                                        disabled={isRestoreBusy}
                                         leftSection={<Icon icon="upload" />}
                                         onClick={() => handleSaveQueue()}
                                     >
@@ -217,7 +214,7 @@ export const PlayQueueListControls = ({
                                     <DropdownMenu.Item
                                         disabled={isRestoreBusy}
                                         leftSection={<Icon icon="download" />}
-                                        onClick={handleRestoreQueue}
+                                        onClick={() => restoreQueue()}
                                     >
                                         {t('player.restoreQueueFromServer')}
                                     </DropdownMenu.Item>
