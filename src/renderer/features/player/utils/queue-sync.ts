@@ -79,6 +79,14 @@ export const dismissServerQueueSession = (serverId: string, queue: GetQueueRespo
 export const isServerQueueSessionDismissed = (serverId: string, queue: GetQueueResponse) =>
     readStorageValue(dismissedSessionStorageKey(serverId)) === getServerQueueSessionKey(queue);
 
+export const getThisDeviceClientName = () =>
+    formatQueueSyncClientName(
+        resolveQueueSyncDeviceName(useSettingsStore.getState().queueSync.deviceName),
+    );
+
+export const getThisDeviceClientNameIfSyncEnabled = () =>
+    useSettingsStore.getState().queueSync.enabled ? getThisDeviceClientName() : undefined;
+
 export const suppressQueueSaves = (durationMs: number) => {
     queueSavesSuppressedUntilMs = Math.max(queueSavesSuppressedUntilMs, Date.now() + durationMs);
 };
@@ -90,12 +98,11 @@ export const saveQueueSnapshotToServer = async (
     snapshot: { currentIndex: number; positionMs: number; songIds: string[] },
 ) => {
     const positionMs = Math.round(snapshot.positionMs);
-    const deviceName = resolveQueueSyncDeviceName(useSettingsStore.getState().queueSync.deviceName);
 
     await api.controller.savePlayQueue({
         apiClientProps: { serverId },
         query: {
-            clientName: formatQueueSyncClientName(deviceName),
+            clientName: getThisDeviceClientName(),
             currentIndex: snapshot.songIds.length > 0 ? snapshot.currentIndex : undefined,
             positionMs,
             songs: snapshot.songIds,

@@ -1209,6 +1209,24 @@ export const SubsonicController: InternalControllerEndpoint = {
         };
     },
 
+    getNowPlaying: async ({ apiClientProps }) => {
+        const res = await ssApiClient(apiClientProps).getNowPlaying();
+
+        if (res.status !== 200) {
+            throw new Error('Failed to get now playing');
+        }
+
+        return (res.body.nowPlaying?.entry ?? []).map((entry) => ({
+            minutesAgo: entry.minutesAgo ?? 0,
+            playbackRate: entry.playbackRate,
+            playerId: entry.playerId !== undefined ? String(entry.playerId) : undefined,
+            playerName: entry.playerName ?? '',
+            positionMs: entry.positionMs,
+            song: ssNormalize.song(entry, apiClientProps.server),
+            state: entry.state,
+            username: entry.username,
+        }));
+    },
     getPlaylistDetail: async (args) => {
         const { apiClientProps, query } = args;
 
@@ -2331,6 +2349,7 @@ export const SubsonicController: InternalControllerEndpoint = {
         if (query.submission || query.event === 'start') {
             const res = await ssApiClient(apiClientProps).scrobble({
                 query: {
+                    ...(query.clientName && { c: query.clientName }),
                     id: query.id,
                     submission: query.submission,
                 },
@@ -2347,6 +2366,7 @@ export const SubsonicController: InternalControllerEndpoint = {
 
         if (hasFeature(apiClientProps.server, ServerFeature.REPORT_PLAYBACK)) {
             const defaultParams = {
+                ...(query.clientName && { c: query.clientName }),
                 ignoreScrobble: true,
                 mediaId: query.id,
                 mediaType: query.mediaType,

@@ -677,6 +677,7 @@ export const NavidromeController: InternalControllerEndpoint = {
     },
     getLyrics: SubsonicController.getLyrics,
     getMusicFolderList: SubsonicController.getMusicFolderList,
+    getNowPlaying: SubsonicController.getNowPlaying,
     getPlaylistDetail: async (args) => {
         const { apiClientProps, query } = args;
 

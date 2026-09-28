@@ -349,6 +349,7 @@ const topSongsList = z.object({
 });
 
 const scrobbleParameters = z.object({
+    c: z.string().optional(),
     id: z.string(),
     submission: z.boolean().optional(),
     time: z.number().optional(), // The time (in milliseconds since 1 Jan 1970) at which the song was listened to.
@@ -851,6 +852,7 @@ const getInternetRadioStations = z.object({
 });
 
 const reportPlaybackParameters = z.object({
+    c: z.string().optional(),
     ignoreScrobble: z.boolean().optional(),
     mediaId: z.string(),
     mediaType: z.enum(['song', 'podcast']),
@@ -860,6 +862,26 @@ const reportPlaybackParameters = z.object({
 });
 
 const reportPlayback = z.null();
+
+const nowPlaying = z.object({
+    nowPlaying: z
+        .object({
+            entry: z
+                .array(
+                    song.extend({
+                        minutesAgo: z.number().optional(),
+                        playbackRate: z.number().optional(),
+                        playerId: z.union([z.number(), z.string()]).optional(),
+                        playerName: z.string().optional(),
+                        positionMs: z.number().optional(),
+                        state: z.enum(['starting', 'playing', 'paused', 'stopped']).optional(),
+                        username: z.string(),
+                    }),
+                )
+                .optional(),
+        })
+        .optional(),
+});
 
 const jukeboxControlParameters = z.object({
     action: z.enum([
@@ -993,6 +1015,7 @@ export const ssType = {
         jukeboxPlaylist,
         jukeboxStatus,
         musicFolderList,
+        nowPlaying,
         ping,
         playlist,
         playlistListEntry,

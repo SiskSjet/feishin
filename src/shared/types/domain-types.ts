@@ -1465,6 +1465,7 @@ export type ScrobbleArgs = BaseEndpointArgs & {
 
 export type ScrobbleQuery = {
     albumId?: string;
+    clientName?: string;
     event?: 'pause' | 'start' | 'stop' | 'timeupdate' | 'unpause';
     id: string;
     mediaType: 'podcast' | 'song';
@@ -1629,6 +1630,7 @@ export type ControllerEndpoint = {
     ) => Promise<GetInternetRadioStationsResponse>;
     getLyrics?: (args: LyricsArgs) => Promise<LyricsResponse>;
     getMusicFolderList: (args: MusicFolderListArgs) => Promise<MusicFolderListResponse>;
+    getNowPlaying?: (args: GetNowPlayingArgs) => Promise<NowPlayingEntry[]>;
     getPlaylistDetail: (args: PlaylistDetailArgs) => Promise<PlaylistDetailResponse>;
     getPlaylistList: (args: PlaylistListArgs) => Promise<PlaylistListResponse>;
     getPlaylistListCount: (args: PlaylistListCountArgs) => Promise<number>;
@@ -1688,6 +1690,8 @@ export type FontData = {
     postscriptName: string;
     style: string;
 };
+
+export type GetNowPlayingArgs = BaseEndpointArgs;
 
 export type GetQueueArgs = BaseEndpointArgs;
 
@@ -1784,6 +1788,7 @@ export type InternalControllerEndpoint = {
     getMusicFolderList: (
         args: ReplaceApiClientProps<MusicFolderListArgs>,
     ) => Promise<MusicFolderListResponse>;
+    getNowPlaying?: (args: ReplaceApiClientProps<GetNowPlayingArgs>) => Promise<NowPlayingEntry[]>;
     getPlaylistDetail: (
         args: ReplaceApiClientProps<PlaylistDetailArgs>,
     ) => Promise<PlaylistDetailResponse>;
@@ -1931,6 +1936,17 @@ export type MoveItemQuery = {
     playlistId: string;
     startingIndex: number;
     trackId: string;
+};
+
+export type NowPlayingEntry = {
+    minutesAgo: number;
+    playbackRate?: number;
+    playerId?: string;
+    playerName: string;
+    positionMs?: number;
+    song: Song;
+    state?: 'paused' | 'playing' | 'starting' | 'stopped';
+    username: string;
 };
 
 export type ReplaceApiClientProps<T> = BaseEndpointArgsWithServer & Omit<T, 'apiClientProps'>;
