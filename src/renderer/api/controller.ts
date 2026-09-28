@@ -647,6 +647,18 @@ export const controller = {
             server.type,
         )?.(addContext({ ...args, apiClientProps: { ...args.apiClientProps, server } }));
     },
+    getNowPlaying(args) {
+        const server = getServerById(args.apiClientProps.serverId);
+
+        if (!server) {
+            throw new Error(`${i18n.t('error.apiRouteError')}: getNowPlaying`);
+        }
+
+        return apiController(
+            'getNowPlaying',
+            server.type,
+        )?.(addContext({ ...args, apiClientProps: { ...args.apiClientProps, server } }));
+    },
     getPlaylistDetail(args) {
         const server = getServerById(args.apiClientProps.serverId);
 

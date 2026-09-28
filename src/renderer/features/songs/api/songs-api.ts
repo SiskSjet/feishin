@@ -46,6 +46,17 @@ export const songsQueries = {
             ...args.options,
         });
     },
+    getNowPlaying: (args: QueryHookArgs<object>) => {
+        return queryOptions({
+            queryFn: ({ signal }) => {
+                return api.controller.getNowPlaying({
+                    apiClientProps: { serverId: args.serverId, signal },
+                });
+            },
+            queryKey: queryKeys.player.fetch({ serverId: args.serverId, type: 'nowPlaying' }),
+            ...args.options,
+        });
+    },
     getQueue: (args: QueryHookArgs<GetQueueQuery>) => {
         return queryOptions({
             queryFn: ({ signal }) => {

@@ -3,6 +3,7 @@ import { AxiosError } from 'axios';
 
 import { api } from '/@/renderer/api';
 import { queryKeys } from '/@/renderer/api/query-keys';
+import { getThisDeviceClientNameIfSyncEnabled } from '/@/renderer/features/player/utils/queue-sync';
 import { MutationOptions } from '/@/renderer/lib/react-query';
 import { incrementQueuePlayCount } from '/@/renderer/store/player.store';
 import { ScrobbleArgs, ScrobbleResponse } from '/@/shared/types/domain-types';
@@ -15,6 +16,7 @@ export const useSendScrobble = (options?: MutationOptions) => {
             return api.controller.scrobble({
                 ...args,
                 apiClientProps: { serverId: args.apiClientProps.serverId },
+                query: { ...args.query, clientName: getThisDeviceClientNameIfSyncEnabled() },
             });
         },
         onSuccess: (_data, variables) => {

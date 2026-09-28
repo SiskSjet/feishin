@@ -153,6 +153,13 @@ export const contract = c.router({
             200: ssType._response.musicFolderList,
         },
     },
+    getNowPlaying: {
+        method: 'GET',
+        path: 'getNowPlaying.view',
+        responses: {
+            200: ssType._response.nowPlaying,
+        },
+    },
     getPlaylist: {
         method: 'GET',
         path: 'getPlaylist.view',
