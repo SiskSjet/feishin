@@ -2,10 +2,13 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { t } from 'i18next';
 import { useCallback, useEffect, useRef } from 'react';
 
-import { api } from '/@/renderer/api';
 import { usePlayerEvents } from '/@/renderer/features/player/audio-player/hooks/use-player-events';
 import { usePlayer } from '/@/renderer/features/player/context/player-context';
-import { songsQueries } from '/@/renderer/features/songs/api/songs-api';
+import {
+    applyServerQueue,
+    fetchServerQueue,
+    saveQueueToServer,
+} from '/@/renderer/features/player/utils/queue-sync';
 import {
     setTimestamp,
     useCurrentServerId,
@@ -21,21 +24,62 @@ import { PlayerStatus } from '/@/shared/types/types';
 
 let startupRestoreSessionHandled = false;
 
+const RESTORE_SEEK_TOLERANCE_SECONDS = 2;
+const RESTORE_SEEK_MAX_ATTEMPTS = 5;
+
 export const useQueueRestoreTimestamp = () => {
     const { mediaSeekToTimestamp } = usePlayerActions();
+    const pendingRestoreSeekRef = useRef<null | {
+        attemptsLeft: number;
+        seconds: number;
+        uniqueId?: string;
+    }>(null);
+
+    const seekWithoutRetrigger = useCallback(
+        (seconds: number) => {
+            const pendingRestoreSeek = pendingRestoreSeekRef.current;
+            pendingRestoreSeekRef.current = null;
+            mediaSeekToTimestamp(seconds);
+            pendingRestoreSeekRef.current = pendingRestoreSeek;
+        },
+        [mediaSeekToTimestamp],
+    );
 
     usePlayerEvents(
         {
-            onQueueRestored: (properties) => {
-                const { position } = properties;
+            onPlayerProgress: ({ timestamp }) => {
+                const pendingRestoreSeek = pendingRestoreSeekRef.current;
+                if (!pendingRestoreSeek) return;
 
-                setTimeout(() => {
-                    setTimestamp(position);
-                    mediaSeekToTimestamp(position);
-                }, 100);
+                const currentUniqueId = usePlayerStore.getState().getCurrentSong()?._uniqueId;
+
+                if (
+                    currentUniqueId !== pendingRestoreSeek.uniqueId ||
+                    pendingRestoreSeek.attemptsLeft <= 0 ||
+                    timestamp >= pendingRestoreSeek.seconds - RESTORE_SEEK_TOLERANCE_SECONDS
+                ) {
+                    pendingRestoreSeekRef.current = null;
+                    return;
+                }
+
+                pendingRestoreSeek.attemptsLeft -= 1;
+                seekWithoutRetrigger(pendingRestoreSeek.seconds);
+            },
+            onQueueRestored: ({ position }) => {
+                pendingRestoreSeekRef.current = null;
+                if (position <= 0) return;
+
+                setTimestamp(position);
+                mediaSeekToTimestamp(position);
+
+                pendingRestoreSeekRef.current = {
+                    attemptsLeft: RESTORE_SEEK_MAX_ATTEMPTS,
+                    seconds: position,
+                    uniqueId: usePlayerStore.getState().getCurrentSong()?._uniqueId,
+                };
             },
         },
-        [],
+        [mediaSeekToTimestamp, seekWithoutRetrigger],
     );
 };
 
@@ -156,26 +200,7 @@ export const useSaveQueue = () => {
                 throw new Error(t('error.serverRequired'));
             }
 
-            const state = usePlayerStore.getState();
-            const queue = state.getQueue();
-
-            if (queue.items.some((item) => item._serverId !== serverId)) {
-                toast.error({
-                    message: t('error.multipleServerSaveQueueError'),
-                    title: t('error.genericError'),
-                });
-
-                throw new Error(`${t('error.multipleServerSaveQueueError')}`);
-            }
-
-            return api.controller.savePlayQueue({
-                apiClientProps: { serverId },
-                query: {
-                    currentIndex: queue.items.length > 0 ? state.player.index : undefined,
-                    positionMs: useTimestampStoreBase.getState().timestamp * 1000,
-                    songs: queue.items.map((item) => item.id),
-                },
-            });
+            return saveQueueToServer(serverId);
         },
         onError: (error) => {
             toast.error({
@@ -197,16 +222,10 @@ export const useRestoreQueue = () => {
         if (!serverId) return;
 
         try {
-            const queue = await queryClient.fetchQuery(
-                songsQueries.getQueue({ query: {}, serverId }),
-            );
+            const queue = await fetchServerQueue(queryClient, serverId);
 
             if (queue) {
-                player.setQueue(
-                    queue.entry,
-                    queue.currentIndex,
-                    queue.positionMs !== undefined ? queue.positionMs / 1000 : undefined,
-                );
+                applyServerQueue(player, serverId, queue);
             }
         } catch (error) {
             toast.error({

@@ -772,12 +772,14 @@ const getIndexesParameters = z.object({
 });
 
 const saveQueueParameters = z.object({
+    c: z.string().optional(),
     current: z.string().optional(),
     id: z.string().array(),
     position: z.number().optional(),
 });
 
 const savePlayQueueByIndexParameters = z.object({
+    c: z.string().optional(),
     currentIndex: z.number().optional(),
     id: z.string().array().optional(),
     position: z.number().optional(),

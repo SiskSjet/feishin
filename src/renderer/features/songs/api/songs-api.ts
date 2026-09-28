@@ -54,6 +54,7 @@ export const songsQueries = {
                 });
             },
             queryKey: queryKeys.player.fetch({ type: 'queue' }),
+            ...args.options,
         });
     },
     list: (args: QueryHookArgs<SongListQuery>, imageSize?: number) => {

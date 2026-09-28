@@ -1940,6 +1940,7 @@ export type SaveQueueArgs = BaseEndpointArgs & {
 };
 
 export type SaveQueueQuery = {
+    clientName?: string;
     currentIndex?: number;
     positionMs?: number;
     songs: string[];
